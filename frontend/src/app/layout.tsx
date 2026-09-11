@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/lib/auth';
 import Navbar from '@/components/layout/Navbar';
 import BottomNav from '@/components/layout/BottomNav';
+import InstallAppPrompt from '@/components/layout/InstallAppPrompt';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -45,6 +46,7 @@ export default function RootLayout({
             {children}
           </main>
           <BottomNav />
+          <InstallAppPrompt />
         </AuthProvider>
 
         {/* Service Worker Registration */}

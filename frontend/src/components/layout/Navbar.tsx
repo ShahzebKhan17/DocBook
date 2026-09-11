@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { Stethoscope, Calendar, User as UserIcon, Shield, LogOut, LogIn, AlertCircle } from 'lucide-react';
+import { Stethoscope, Calendar, User as UserIcon, Shield, LogOut, LogIn, AlertCircle, Download } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -73,7 +73,17 @@ export default function Navbar() {
           </nav>
 
           {/* User actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-docbook-install'))}
+              title="Download / Install DocBook App"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200/80 rounded-lg transition"
+            >
+              <Download className="w-3.5 h-3.5 text-brand-600" />
+              <span className="hidden sm:inline">Install App</span>
+            </button>
+
             {user ? (
               <div className="flex items-center gap-3">
                 <Link
