@@ -75,30 +75,45 @@ def generate_available_slots(
     for avail in sorted_availabilities:
         start_dt = datetime.combine(target_date, avail.start_time)
         end_dt = datetime.combine(target_date, avail.end_time)
-        step = timedelta(minutes=avail.slot_duration)
+        step = timedelta(hours=1)
 
         curr_dt = start_dt
         while curr_dt + step <= end_dt:
-            slot_t = curr_dt.time()
-            time_raw = slot_t.strftime("%H:%M:%S")
+            slot_start_t = curr_dt.time()
+            slot_end_t = (curr_dt + step).time()
+            time_raw = slot_start_t.strftime("%H:%M:%S")
 
             if time_raw not in seen_times:
                 seen_times.add(time_raw)
-                time_str = format_time_display(slot_t)
+                time_str = f"{format_time_display(slot_start_t)} - {format_time_display(slot_end_t)}"
 
-                # Check if booked
-                is_booked = time_raw in booked_times
+                # Count active bookings in this 1-hour slot
+                slot_bookings_count = sum(
+                    1 for appt in booked_appointments
+                    if slot_start_t <= appt.appointment_time < slot_end_t
+                )
+
+                # Each 1-hour slot allows up to 40 bookings
+                is_full = slot_bookings_count >= 40
 
                 # If date is today and time has passed, it cannot be booked
                 is_past = is_today and (time_raw <= current_time_str)
 
-                is_available = (not is_booked) and (not is_past)
+                is_available = (not is_full) and (not is_past)
+
+                message = None
+                if is_full:
+                    message = "No More Bookings Are Allowed for this Particular Time Slot"
+                elif is_past:
+                    message = "Time slot has passed"
 
                 slots.append(
                     TimeSlot(
                         time_str=time_str,
                         time_raw=time_raw,
                         is_available=is_available,
+                        is_full=is_full,
+                        message=message,
                     )
                 )
 

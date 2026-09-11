@@ -1,4 +1,4 @@
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 import random
 from typing import Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
@@ -28,6 +28,8 @@ router = APIRouter()
 def parse_appointment_time(time_str: str) -> time:
     """Parses various time formats into a datetime.time object."""
     clean = time_str.strip().upper()
+    if " - " in clean:
+        clean = clean.split(" - ")[0].strip()
     for fmt in ["%H:%M:%S", "%H:%M", "%I:%M %p", "%I:%M%p"]:
         try:
             return datetime.strptime(clean, fmt).time()
@@ -127,27 +129,34 @@ async def book_appointment(
     available_data = generate_available_slots(db, payload.doctor_id, payload.doctor_location_id, payload.appointment_date)
     matching_slot = next((s for s in available_data.slots if s.time_raw == target_time.strftime("%H:%M:%S")), None)
     if not matching_slot or not matching_slot.is_available:
+        if matching_slot and matching_slot.is_full:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No More Bookings Are Allowed for this Particular Time Slot",
+            )
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="The requested time slot is not available or has already been booked. Please select another slot.",
+            detail="The requested time slot is not available or has already passed. Please select another slot.",
         )
 
-    # Double check conflict in DB atomically
-    existing = (
+    # Double check hourly 40-booking capacity in DB atomically
+    slot_end_time = (datetime.combine(payload.appointment_date, target_time) + timedelta(hours=1)).time()
+    booked_count = (
         db.query(Appointment)
         .filter(
             Appointment.doctor_id == payload.doctor_id,
             Appointment.doctor_location_id == payload.doctor_location_id,
             Appointment.appointment_date == payload.appointment_date,
-            Appointment.appointment_time == target_time,
+            Appointment.appointment_time >= target_time,
+            Appointment.appointment_time < slot_end_time,
             Appointment.status != AppointmentStatus.CANCELLED,
         )
-        .first()
+        .count()
     )
-    if existing:
+    if booked_count >= 40:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="This appointment slot has already been booked. Please choose another time slot.",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No More Bookings Are Allowed for this Particular Time Slot",
         )
 
     # Snapshot current doctor fee at time of booking

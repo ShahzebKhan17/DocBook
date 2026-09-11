@@ -6,9 +6,11 @@ from backend.app.models.appointment import AppointmentStatus
 
 
 class TimeSlot(BaseModel):
-    time_str: str  # e.g., "10:00 AM"
+    time_str: str  # e.g., "10:00 AM - 11:00 AM"
     time_raw: str  # e.g., "10:00:00"
     is_available: bool
+    is_full: bool = False
+    message: Optional[str] = None
 
 
 class AvailableSlotsResponse(BaseModel):

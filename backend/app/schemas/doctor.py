@@ -9,7 +9,7 @@ class DoctorAvailabilityBase(BaseModel):
     day_of_week: int = Field(..., ge=0, le=6, description="0=Monday, 6=Sunday")
     start_time: time
     end_time: time
-    slot_duration: int = Field(30, ge=10, le=120)
+    slot_duration: int = Field(60, ge=10, le=120)
     is_active: bool = True
 
 

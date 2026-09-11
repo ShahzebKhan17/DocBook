@@ -67,7 +67,6 @@ function AdminDoctorsContent() {
   const [availDay, setAvailDay] = useState<number>(0);
   const [availStartTime, setAvailStartTime] = useState('10:00');
   const [availEndTime, setAvailEndTime] = useState('13:00');
-  const [availDuration, setAvailDuration] = useState(30);
 
   const fetchDoctors = () => {
     setLoading(true);
@@ -207,7 +206,6 @@ function AdminDoctorsContent() {
     setAvailDay(0);
     setAvailStartTime('10:00');
     setAvailEndTime('13:00');
-    setAvailDuration(30);
     setIsAvailModalOpen(true);
   };
 
@@ -220,7 +218,7 @@ function AdminDoctorsContent() {
         day_of_week: Number(availDay),
         start_time: `${availStartTime}:00`,
         end_time: `${availEndTime}:00`,
-        slot_duration: Number(availDuration),
+        slot_duration: 60,
         is_active: true,
       });
       setIsAvailModalOpen(false);
@@ -401,7 +399,7 @@ function AdminDoctorsContent() {
                                   className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-[11px]"
                                 >
                                   <span className="font-semibold text-slate-800">
-                                    {DAYS_NAMES[av.day_of_week]}: {av.start_time.slice(0, 5)} - {av.end_time.slice(0, 5)} ({av.slot_duration}m)
+                                    {DAYS_NAMES[av.day_of_week]}: {av.start_time.slice(0, 5)} - {av.end_time.slice(0, 5)} (Hourly · 40/hr)
                                   </span>
                                   <button
                                     onClick={() => handleDeleteAvailability(av.id)}
@@ -777,21 +775,11 @@ function AdminDoctorsContent() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1 uppercase tracking-wider">
-                    Slot Duration (Minutes)
-                  </label>
-                  <select
-                    value={availDuration}
-                    onChange={(e) => setAvailDuration(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"
-                  >
-                    <option value={15}>15 Minutes</option>
-                    <option value={20}>20 Minutes</option>
-                    <option value={30}>30 Minutes (Recommended)</option>
-                    <option value={45}>45 Minutes</option>
-                    <option value={60}>60 Minutes</option>
-                  </select>
+                <div className="p-3 bg-brand-50/70 border border-brand-100 rounded-xl text-brand-900">
+                  <p className="font-semibold text-[11px]">Automatic Hourly Slots</p>
+                  <p className="text-[10px] text-brand-700 mt-0.5">
+                    Schedule will be split into 1-hour slots automatically (e.g. 10:00 - 11:00 AM). Each 1-hour slot allows a maximum of 40 bookings.
+                  </p>
                 </div>
 
                 <div className="pt-2">

@@ -1,13 +1,25 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { Stethoscope, User, Mail, Lock, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (user.role === 'ADMIN') {
+        router.replace('/admin');
+      } else {
+        router.replace('/dashboard');
+      }
+    }
+  }, [user, authLoading, router]);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -39,9 +51,19 @@ export default function RegisterPage() {
       router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } catch (err: any) {
       setError(err.message || 'Registration failed');
+    } finally {
       setLoading(false);
     }
   };
+
+  if (authLoading || user) {
+    return (
+      <div className="max-w-md mx-auto py-16 text-center">
+        <div className="w-8 h-8 border-3 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-sm text-slate-500">Redirecting to your account...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto py-8 sm:py-12">

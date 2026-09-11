@@ -38,3 +38,18 @@ button, a {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Hide Vercel Toolbar & Feedback Widget */
+vercel-live-feedback,
+#vercel-toolbar,
+[data-vercel-toolbar],
+[data-testid="vercel-toolbar"],
+[id^="vercel-live-feedback"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  clip: rect(0, 0, 0, 0) !important;
+  width: 0 !important;
+  height: 0 !important;
+}

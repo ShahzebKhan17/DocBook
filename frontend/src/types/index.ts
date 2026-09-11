@@ -90,9 +90,11 @@ export interface DoctorDetail extends DoctorCard {
 }
 
 export interface TimeSlot {
-  time_str: string; // e.g. "10:00 AM"
+  time_str: string; // e.g. "10:00 AM - 11:00 AM"
   time_raw: string; // e.g. "10:00:00"
   is_available: boolean;
+  is_full?: boolean;
+  message?: string | null;
 }
 
 export interface AvailableSlotsData {

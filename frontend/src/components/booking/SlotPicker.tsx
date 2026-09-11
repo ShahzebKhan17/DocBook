@@ -181,24 +181,47 @@ export default function SlotPicker({ doctor, onSlotSelected }: SlotPickerProps) 
             No appointment slots scheduled for this day.
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {slotsData.slots.map((slot) => {
               const isSelected = selectedSlot?.time_raw === slot.time_raw;
+              const isFull = slot.is_full || slot.message === 'No More Bookings Are Allowed for this Particular Time Slot';
+
               return (
                 <button
                   key={slot.time_raw}
+                  type="button"
                   disabled={!slot.is_available}
                   onClick={() => handleSlotClick(slot)}
-                  className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold border flex items-center justify-center gap-1.5 transition-all ${
+                  className={`p-3 rounded-2xl text-left border transition-all flex flex-col justify-between min-h-[72px] ${
                     isSelected
-                      ? 'bg-brand-600 text-white border-brand-600 ring-2 ring-brand-500/20 shadow-sm'
+                      ? 'bg-brand-600 text-white border-brand-600 ring-2 ring-brand-500/30 shadow-sm'
                       : slot.is_available
-                      ? 'bg-white hover:bg-brand-50 text-slate-800 border-slate-200 hover:border-brand-400 hover:text-brand-600'
-                      : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through opacity-60'
+                      ? 'bg-white hover:bg-brand-50/60 text-slate-800 border-slate-200 hover:border-brand-400 hover:shadow-xs'
+                      : isFull
+                      ? 'bg-rose-50/70 border-rose-200 text-rose-800 cursor-not-allowed opacity-95'
+                      : 'bg-slate-100/70 text-slate-400 border-slate-200 cursor-not-allowed opacity-60'
                   }`}
                 >
-                  {isSelected && <CheckCircle2 className="w-3.5 h-3.5" />}
-                  {slot.time_str}
+                  <div className="flex items-center justify-between gap-1 w-full">
+                    <span className={`text-xs sm:text-sm font-bold ${isSelected ? 'text-white' : isFull ? 'text-rose-900' : 'text-slate-800'}`}>
+                      {slot.time_str}
+                    </span>
+                    {isSelected && <CheckCircle2 className="w-4 h-4 text-white shrink-0" />}
+                    {isFull && <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />}
+                  </div>
+                  <div className="mt-1.5 text-[11px] leading-tight">
+                    {isSelected ? (
+                      <span className="text-brand-100 font-medium">Selected Slot</span>
+                    ) : isFull ? (
+                      <span className="text-rose-600 font-semibold">
+                        No More Bookings Are Allowed for this Particular Time Slot
+                      </span>
+                    ) : slot.is_available ? (
+                      <span className="text-emerald-600 font-medium">Available</span>
+                    ) : (
+                      <span className="text-slate-400">Time Passed</span>
+                    )}
+                  </div>
                 </button>
               );
             })}

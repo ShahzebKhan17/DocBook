@@ -1,22 +1,41 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { Stethoscope, Lock, Mail, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 function LoginContent() {
-  const { login } = useAuth();
+  const { user, loading: authLoading, login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/dashboard';
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      if (user.role === 'ADMIN') {
+        router.replace('/admin');
+      } else {
+        router.replace(redirectUrl);
+      }
+    }
+  }, [user, authLoading, redirectUrl, router]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  if (authLoading || user) {
+    return (
+      <div className="max-w-md mx-auto py-16 text-center">
+        <div className="w-8 h-8 border-3 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-sm text-slate-500">Redirecting to your account...</p>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
