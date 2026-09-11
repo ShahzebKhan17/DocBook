@@ -114,10 +114,7 @@ backend\venv\Scripts\python.exe backend/tests/test_backend.py
 
 | Role | Email | Password | Details |
 |---|---|---|---|
-| **Admin** | `admin@docbook.com` | `Admin@123` | Full control over doctors, clinics, schedules, and bookings |
-| **Patient** | `rahul.sharma@example.com` | `Patient@123` | Verified demo patient with upcoming appointment |
-
-*(Both accounts are also pre-configured with 1-click autofill buttons on the `/login` page)*
+| **Admin** | `admin@docbook.com` *(or your custom ADMIN_EMAIL)* | `Admin@123` *(or your custom ADMIN_PASSWORD)* | Full single-admin control over doctors, clinics, schedules, and bookings |
 
 ---
 
@@ -160,7 +157,7 @@ When a patient books an appointment, the Admin receives:
 🔔 NEW APPOINTMENT
 
 Patient:
-Rahul Sharma
+John Doe
 
 Age:
 28
@@ -169,7 +166,7 @@ Mobile:
 98XXXXXXXX
 
 Doctor:
-Dr. Amit Kumar
+Dr. Specialist
 
 Specialization:
 Cardiologist

@@ -75,36 +75,19 @@ def seed_database():
         # 1. Seed / Synchronize Single Admin User
         admin_user = ensure_single_admin(db)
 
-        # 2. Seed Demo Patient (Rahul Sharma)
+        # 2. Purge Demo Patient (Rahul Sharma) if present
         patient_email = "rahul.sharma@example.com"
-        patient = db.query(User).filter(User.email == patient_email).first()
-        if not patient:
-            print(f"Creating Demo Patient: {patient_email}")
-            patient = User(
-                name="Rahul Sharma",
-                email=patient_email,
-                password_hash=get_password_hash("Patient@123"),
-                role=UserRole.PATIENT,
-                email_verified=True,
-                verification_token=None,
-            )
-            db.add(patient)
+        demo_patient = db.query(User).filter(User.email == patient_email).first()
+        if demo_patient:
+            print(f"[Cleanup] Purging demo patient: {patient_email}")
+            # Delete any appointments for demo patient
+            db.query(Appointment).filter(Appointment.patient_id == demo_patient.id).delete()
+            # Delete profile
+            db.query(PatientProfile).filter(PatientProfile.user_id == demo_patient.id).delete()
+            # Delete user
+            db.delete(demo_patient)
             db.commit()
-            db.refresh(patient)
-
-            profile = PatientProfile(
-                user_id=patient.id,
-                date_of_birth="28",
-                gender="Male",
-                mobile="9876543210",
-                address="15 Vikas Nagar, Ayodhya, Uttar Pradesh",
-                blood_group="B+",
-                allergies="Penicillin",
-                emergency_contact="9876543211",
-            )
-            db.add(profile)
-            db.commit()
-            print("[OK] Demo Patient created successfully.")
+            print("[OK] Demo patient removed from database.")
 
         # 3. Purge any legacy sample/dummy doctors from the database
         dummy_names = [
