@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { formatLocalDate } from '@/lib/utils';
 import { Appointment } from '@/types';
 import {
   Calendar,
@@ -76,7 +77,7 @@ export default function PatientDashboardPage() {
     );
   }
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = formatLocalDate(new Date());
 
   const upcomingAppointments = appointments.filter(
     (a) => a.appointment_date >= todayStr && a.status !== 'CANCELLED' && a.status !== 'COMPLETED'

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { AvailableSlotsData, DoctorDetail, DoctorLocation, TimeSlot } from '@/types';
+import { formatLocalDate } from '@/lib/utils';
 import { Calendar as CalendarIcon, Clock, MapPin, ExternalLink, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface SlotPickerProps {
@@ -15,8 +16,7 @@ export default function SlotPicker({ doctor, onSlotSelected }: SlotPickerProps) 
     doctor.locations.length > 0 ? doctor.locations[0].id : 0
   );
   const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    return formatLocalDate(new Date());
   });
   const [slotsData, setSlotsData] = useState<AvailableSlotsData | null>(null);
   const [loadingSlots, setLoadingSlots] = useState<boolean>(false);
@@ -56,7 +56,7 @@ export default function SlotPicker({ doctor, onSlotSelected }: SlotPickerProps) 
   const nextDates = Array.from({ length: 10 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i);
-    const dateStr = d.toISOString().split('T')[0];
+    const dateStr = formatLocalDate(d);
     const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
     const monthName = d.toLocaleDateString('en-US', { month: 'short' });
     const dayNum = d.getDate();
