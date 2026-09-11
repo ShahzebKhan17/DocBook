@@ -41,23 +41,11 @@ export default function Navbar() {
               <span className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-1">
                 Doc<span className="text-brand-600">Book</span>
               </span>
-              <span className="text-[10px] font-medium text-slate-400 block -mt-1 tracking-wider uppercase">
-                Appointment PWA
-              </span>
             </div>
           </Link>
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-            <Link
-              href="/doctors"
-              className={`flex items-center gap-1.5 transition-colors ${
-                pathname.startsWith('/doctors') ? 'text-brand-600 font-semibold' : 'text-slate-600 hover:text-brand-600'
-              }`}
-            >
-              <Stethoscope className="w-4 h-4" />
-              Find Doctors
-            </Link>
 
             {user && user.role === 'PATIENT' && (
               <Link
