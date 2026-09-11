@@ -133,11 +133,21 @@ export default function HomePage() {
               <div key={i} className="h-48 bg-slate-100 rounded-2xl animate-pulse" />
             ))}
           </div>
-        ) : (
+        ) : doctors.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {doctors.map((doctor) => (
               <DoctorCard key={doctor.id} doctor={doctor} />
             ))}
+          </div>
+        ) : (
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-8 sm:p-12 text-center max-w-xl mx-auto shadow-sm">
+            <div className="w-14 h-14 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-brand-100">
+              <Stethoscope className="w-7 h-7" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 mb-1">No Specialists Listed Yet</h3>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+              Real-time clinic schedules and consultation slots will appear here once doctors are onboarded by clinic management.
+            </p>
           </div>
         )}
       </section>

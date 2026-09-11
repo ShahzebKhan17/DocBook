@@ -9,7 +9,7 @@ class Doctor(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False, index=True)
-    profile_photo = Column(String(500), nullable=True)
+    profile_photo = Column(Text, nullable=True)
     gender = Column(String(50), nullable=True)
     specialization = Column(String(255), nullable=False, index=True)
     qualification = Column(String(255), nullable=False)

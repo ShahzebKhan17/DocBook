@@ -22,6 +22,54 @@ def test_full_flow():
     res = client.get("/api/v1/doctors")
     assert res.status_code == 200
     doctors = res.json()
+
+    if len(doctors) == 0:
+        # Self-provision a test doctor via admin API for automated testing
+        from backend.app.core.config import settings
+        admin_login = client.post(
+            "/api/v1/auth/login",
+            json={"email": settings.admin_email, "password": settings.admin_password}
+        )
+        adm_hdr = {"Authorization": f"Bearer {admin_login.json()['access_token']}"}
+        new_doc_res = client.post("/api/v1/admin/doctors", json={
+            "name": "Dr. Test Specialist",
+            "gender": "Male",
+            "specialization": "Cardiologist",
+            "qualification": "MBBS, MD Cardiology",
+            "experience_years": 10,
+            "about": "Automated test doctor",
+            "consultation_fee": 500.00,
+            "follow_up_fee": 300.00,
+            "languages": "English, Hindi"
+        }, headers=adm_hdr)
+        assert new_doc_res.status_code == 200
+        test_doc_id = new_doc_res.json()["id"]
+
+        # Add location
+        loc_res = client.post(f"/api/v1/admin/doctors/{test_doc_id}/locations", json={
+            "clinic_name": "Test Care Clinic",
+            "address": "12 Civil Lines",
+            "locality": "Civil Lines",
+            "city": "Ayodhya",
+            "state": "Uttar Pradesh",
+            "pincode": "224001",
+            "room_number": "Room 101"
+        }, headers=adm_hdr)
+        assert loc_res.status_code == 200
+        test_loc_id = loc_res.json()["id"]
+
+        # Add availability for all 7 days
+        for d in range(7):
+            client.post(f"/api/v1/admin/locations/{test_loc_id}/availability", json={
+                "day_of_week": d,
+                "start_time": "10:00",
+                "end_time": "14:00",
+                "slot_duration": 30
+            }, headers=adm_hdr)
+
+        res = client.get("/api/v1/doctors")
+        doctors = res.json()
+
     assert len(doctors) > 0
     doc = doctors[0]
     print(f"[OK] Found {len(doctors)} doctors. First doctor: {doc['name']} - {doc['specialization']}")
@@ -102,10 +150,11 @@ def test_full_flow():
     assert res.status_code == 403
     print("[OK] Patient blocked from Admin routes with HTTP 403")
 
+    from backend.app.core.config import settings
     # Admin Login
     admin_login_res = client.post(
         "/api/v1/auth/login",
-        json={"email": "admin@docbook.com", "password": "Admin@123"}
+        json={"email": settings.admin_email, "password": settings.admin_password}
     )
     assert admin_login_res.status_code == 200
     admin_token = admin_login_res.json()["access_token"]

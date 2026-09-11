@@ -2,7 +2,6 @@
 
 import React, { Suspense, useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
 import { api } from '@/lib/api';
 import { DoctorDetail, DoctorLocation, TimeSlot } from '@/types';
 import SlotPicker from '@/components/booking/SlotPicker';
@@ -107,12 +106,10 @@ function DoctorDetailContent() {
           {/* Doctor Avatar */}
           <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
             {doctor.profile_photo ? (
-              <Image
+              <img
                 src={doctor.profile_photo}
                 alt={doctor.name}
-                fill
-                className="object-cover"
-                priority
+                className="w-full h-full object-cover"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-brand-50 text-brand-700 font-bold text-4xl">

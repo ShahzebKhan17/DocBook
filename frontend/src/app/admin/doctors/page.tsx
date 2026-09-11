@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
+import DoctorPhotoPicker from '@/components/admin/DoctorPhotoPicker';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { DoctorDetail } from '@/types';
@@ -288,7 +288,7 @@ function AdminDoctorsContent() {
                 <div className="flex items-center gap-4">
                   <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 shrink-0 border">
                     {doc.profile_photo ? (
-                      <Image src={doc.profile_photo} alt={doc.name} fill className="object-cover" />
+                      <img src={doc.profile_photo} alt={doc.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-brand-50 font-bold text-xl text-brand-700">
                         {doc.name.charAt(0)}
@@ -457,35 +457,23 @@ function AdminDoctorsContent() {
                   />
                 </div>
 
-                {/* Profile Photo URL & Gender */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1 uppercase tracking-wider">
-                      Photo URL
-                    </label>
-                    <input
-                      type="url"
-                      value={profilePhoto}
-                      onChange={(e) => setProfilePhoto(e.target.value)}
-                      placeholder="https://..."
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 focus:bg-white"
-                    />
-                  </div>
+                {/* Doctor Photo Picker (Camera / Upload / URL) */}
+                <DoctorPhotoPicker value={profilePhoto} onChange={setProfilePhoto} />
 
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1 uppercase tracking-wider">
-                      Gender
-                    </label>
-                    <select
-                      value={gender}
-                      onChange={(e) => setGender(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 focus:bg-white"
-                    >
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
+                {/* Gender */}
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1 uppercase tracking-wider">
+                    Gender
+                  </label>
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 focus:bg-white"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
 
                 {/* Specialization & Qualifications */}

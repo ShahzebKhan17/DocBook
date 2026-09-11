@@ -1,6 +1,5 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { DoctorCard as DoctorCardType } from '@/types';
 import { CheckCircle2, MapPin, Users, Award, Clock } from 'lucide-react';
 
@@ -18,12 +17,10 @@ export default function DoctorCard({ doctor }: DoctorCardProps) {
         <div className="flex items-start gap-4">
           <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-slate-100 shrink-0 border border-slate-100">
             {doctor.profile_photo ? (
-              <Image
+              <img
                 src={doctor.profile_photo}
                 alt={doctor.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 640px) 80px, 96px"
+                className="w-full h-full object-cover"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-brand-50 text-brand-700 font-bold text-2xl">
