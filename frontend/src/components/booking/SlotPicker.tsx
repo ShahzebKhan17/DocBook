@@ -11,6 +11,9 @@ interface SlotPickerProps {
   onSlotSelected: (location: DoctorLocation, date: string, slot: TimeSlot) => void;
 }
 
+const DAYS_FULL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
 export default function SlotPicker({ doctor, onSlotSelected }: SlotPickerProps) {
   const [selectedLocationId, setSelectedLocationId] = useState<number>(
     doctor.locations.length > 0 ? doctor.locations[0].id : 0
@@ -21,6 +24,33 @@ export default function SlotPicker({ doctor, onSlotSelected }: SlotPickerProps) 
   const [slotsData, setSlotsData] = useState<AvailableSlotsData | null>(null);
   const [loadingSlots, setLoadingSlots] = useState<boolean>(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+
+  // Calculate day_of_week for selectedDate (0=Monday ... 6=Sunday)
+  const currentDayOfWeek = (() => {
+    const [y, m, d] = selectedDate.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d);
+    return (dateObj.getDay() + 6) % 7;
+  })();
+
+  const currentDayName = DAYS_FULL[currentDayOfWeek];
+
+  // If doctor has multiple locations and current selection has no OPD on selectedDate,
+  // automatically focus on the location that has OPD
+  useEffect(() => {
+    if (!doctor.locations || doctor.locations.length <= 1) return;
+    const curLoc = doctor.locations.find((l) => l.id === selectedLocationId);
+    const curHasOPD = curLoc?.availabilities?.some(
+      (av) => av.is_active && av.day_of_week === currentDayOfWeek
+    );
+    if (!curHasOPD) {
+      const activeLoc = doctor.locations.find((l) =>
+        l.availabilities?.some((av) => av.is_active && av.day_of_week === currentDayOfWeek)
+      );
+      if (activeLoc) {
+        setSelectedLocationId(activeLoc.id);
+      }
+    }
+  }, [selectedDate, currentDayOfWeek, doctor.locations, selectedLocationId]);
 
   const selectedLocation = doctor.locations.find((l) => l.id === selectedLocationId) || doctor.locations[0];
 
@@ -78,51 +108,127 @@ export default function SlotPicker({ doctor, onSlotSelected }: SlotPickerProps) 
         Book Appointment Slot
       </h3>
 
-      {/* 1. Location Selector (if multiple locations) */}
+      {/* 1. Location Selector with Green (Consulting) vs Red (No OPD) */}
       <div className="mb-6">
-        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
-          1. Select Consultation Location
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            1. Select Consultation Location
+          </label>
+          {doctor.locations.length > 1 && (
+            <span className="text-[11px] font-medium hidden sm:inline-flex items-center">
+              <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Green: OPD Available
+              </span>
+              <span className="mx-2 text-slate-300">|</span>
+              <span className="text-rose-600 font-semibold flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-rose-500"></span> Red: No OPD
+              </span>
+            </span>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {doctor.locations.map((loc) => {
             const isSelected = loc.id === selectedLocationId;
+            const isConsultingToday = Boolean(
+              loc.availabilities &&
+              loc.availabilities.length > 0 &&
+              loc.availabilities.some((av) => av.is_active && av.day_of_week === currentDayOfWeek)
+            );
+
+            const workingDaysSummary = loc.availabilities
+              ? Array.from(
+                  new Set(
+                    loc.availabilities
+                      .filter((av) => av.is_active)
+                      .map((av) => DAYS_SHORT[av.day_of_week])
+                  )
+                ).join(', ')
+              : '';
+
             return (
               <div
                 key={loc.id}
                 onClick={() => setSelectedLocationId(loc.id)}
-                className={`cursor-pointer rounded-xl p-3.5 border transition-all text-left ${
-                  isSelected
-                    ? 'border-brand-600 bg-brand-50/50 shadow-sm ring-1 ring-brand-500'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                className={`cursor-pointer rounded-2xl p-4 border transition-all text-left relative flex flex-col justify-between ${
+                  isConsultingToday
+                    ? isSelected
+                      ? 'border-emerald-500 bg-emerald-50/70 shadow-sm ring-2 ring-emerald-500/25'
+                      : 'border-emerald-200/90 bg-white hover:border-emerald-400 hover:bg-emerald-50/30'
+                    : isSelected
+                    ? 'border-rose-400 bg-rose-50/50 ring-2 ring-rose-400/20 shadow-xs'
+                    : 'border-rose-200/80 bg-rose-50/20 hover:border-rose-300 hover:bg-rose-50/35 opacity-90'
                 }`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-2">
-                    <MapPin className={`w-4 h-4 mt-0.5 shrink-0 ${isSelected ? 'text-brand-600' : 'text-slate-400'}`} />
-                    <div>
-                      <h4 className="font-bold text-sm text-slate-900">{loc.clinic_name}</h4>
-                      <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                        {loc.address}, {loc.locality}, {loc.city}
-                      </p>
-                      {loc.room_number && (
-                        <span className="inline-block mt-1 text-[11px] font-medium bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                          {loc.room_number}
+                <div>
+                  {/* Header with clinic name, pin icon & Green / Red Status Badge */}
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-start gap-2.5">
+                      <div
+                        className={`p-2 rounded-xl mt-0.5 shrink-0 ${
+                          isConsultingToday
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-rose-100 text-rose-600'
+                        }`}
+                      >
+                        <MapPin className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-sm text-slate-900 leading-tight">{loc.clinic_name}</h4>
+                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                          {loc.address}, {loc.locality}, {loc.city}
+                        </p>
+                        {loc.room_number && (
+                          <span className="inline-block mt-1 text-[11px] font-medium bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">
+                            {loc.room_number}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Green / Red Pill Badge */}
+                    <div className="shrink-0">
+                      {isConsultingToday ? (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                          OPD Available
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-300">
+                          <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                          No OPD Today
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
-                {loc.google_maps_url && (
-                  <a
-                    href={loc.google_maps_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:text-brand-700 mt-2"
-                  >
-                    View on Google Maps <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
+
+                {/* Footer banner explaining the exact status & Google Maps link */}
+                <div className="mt-2.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  {isConsultingToday ? (
+                    <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      Doctor consulting here on {currentDayName}
+                    </span>
+                  ) : (
+                    <span className="text-rose-600 font-medium flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                      {workingDaysSummary ? `Open on: ${workingDaysSummary}` : `No OPD on ${currentDayName}`}
+                    </span>
+                  )}
+
+                  {loc.google_maps_url && (
+                    <a
+                      href={loc.google_maps_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:text-brand-700 ml-2 shrink-0"
+                    >
+                      Maps <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
               </div>
             );
           })}
