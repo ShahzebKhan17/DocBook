@@ -5,26 +5,91 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 import { DoctorCard as DoctorCardType } from '@/types';
 import DoctorCard from '@/components/doctors/DoctorCard';
-import { Search, Stethoscope, ShieldCheck, Heart, Baby, Bone, Activity, Sparkles, ArrowRight } from 'lucide-react';
+import {
+  Search,
+  Stethoscope,
+  ShieldCheck,
+  Heart,
+  Baby,
+  Bone,
+  Activity,
+  Sparkles,
+  ArrowRight,
+  Brain,
+  Smile,
+  Eye,
+  HeartPulse,
+  Ear,
+} from 'lucide-react';
 
-const specialties = [
-  { name: 'Cardiologist', icon: Heart, color: 'bg-rose-50 text-rose-600 border-rose-100' },
-  { name: 'Pediatrician', icon: Baby, color: 'bg-amber-50 text-amber-600 border-amber-100' },
-  { name: 'Dermatologist', icon: Sparkles, color: 'bg-purple-50 text-purple-600 border-purple-100' },
-  { name: 'Orthopedic Surgeon', icon: Bone, color: 'bg-blue-50 text-blue-600 border-blue-100' },
-  { name: 'Gynecologist', icon: Activity, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+const SPECIALTY_META: Record<string, { icon: any; color: string }> = {
+  cardiologist: { icon: Heart, color: 'bg-rose-50 text-rose-600 border-rose-100' },
+  cardiology: { icon: Heart, color: 'bg-rose-50 text-rose-600 border-rose-100' },
+  pediatrician: { icon: Baby, color: 'bg-amber-50 text-amber-600 border-amber-100' },
+  pediatrics: { icon: Baby, color: 'bg-amber-50 text-amber-600 border-amber-100' },
+  dermatologist: { icon: Sparkles, color: 'bg-purple-50 text-purple-600 border-purple-100' },
+  dermatology: { icon: Sparkles, color: 'bg-purple-50 text-purple-600 border-purple-100' },
+  'orthopedic surgeon': { icon: Bone, color: 'bg-blue-50 text-blue-600 border-blue-100' },
+  orthopedic: { icon: Bone, color: 'bg-blue-50 text-blue-600 border-blue-100' },
+  orthopedics: { icon: Bone, color: 'bg-blue-50 text-blue-600 border-blue-100' },
+  gynecologist: { icon: Activity, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+  gynecology: { icon: Activity, color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+  neurologist: { icon: Brain, color: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
+  neurology: { icon: Brain, color: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
+  dentist: { icon: Smile, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
+  dental: { icon: Smile, color: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
+  ophthalmologist: { icon: Eye, color: 'bg-sky-50 text-sky-600 border-sky-100' },
+  ophthalmology: { icon: Eye, color: 'bg-sky-50 text-sky-600 border-sky-100' },
+  psychiatrist: { icon: HeartPulse, color: 'bg-violet-50 text-violet-600 border-violet-100' },
+  'general physician': { icon: Stethoscope, color: 'bg-teal-50 text-teal-600 border-teal-100' },
+  ent: { icon: Ear, color: 'bg-orange-50 text-orange-600 border-orange-100' },
+  'ent specialist': { icon: Ear, color: 'bg-orange-50 text-orange-600 border-orange-100' },
+};
+
+const DEFAULT_SPECIALTIES = [
+  'Cardiologist',
+  'Pediatrician',
+  'Dermatologist',
+  'Orthopedic Surgeon',
+  'Gynecologist',
 ];
+
+function getSpecialtyMeta(name: string) {
+  const key = name.trim().toLowerCase();
+  if (SPECIALTY_META[key]) {
+    return SPECIALTY_META[key];
+  }
+  for (const [k, meta] of Object.entries(SPECIALTY_META)) {
+    if (key.includes(k) || k.includes(key)) {
+      return meta;
+    }
+  }
+  return { icon: Stethoscope, color: 'bg-brand-50 text-brand-600 border-brand-100' };
+}
 
 export default function HomePage() {
   const [doctors, setDoctors] = useState<DoctorCardType[]>([]);
+  const [specialtiesList, setSpecialtiesList] = useState<string[]>(DEFAULT_SPECIALTIES);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    api
-      .listDoctors()
-      .then((data) => setDoctors(data.slice(0, 4)))
-      .catch((err) => console.error(err))
+    Promise.all([
+      api.listDoctors().catch((err) => {
+        console.error(err);
+        return [];
+      }),
+      api.getSpecializations().catch((err) => {
+        console.error(err);
+        return [];
+      }),
+    ])
+      .then(([docData, specData]) => {
+        setDoctors(docData.slice(0, 4));
+        if (specData && specData.length > 0) {
+          setSpecialtiesList(specData);
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -91,20 +156,21 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          {specialties.map((spec) => {
-            const Icon = spec.icon;
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {specialtiesList.map((name) => {
+            const meta = getSpecialtyMeta(name);
+            const Icon = meta.icon;
             return (
               <Link
-                key={spec.name}
-                href={`/doctors?specialization=${encodeURIComponent(spec.name)}`}
-                className="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-col items-center text-center hover:shadow-md hover:border-brand-300 transition group"
+                key={name}
+                href={`/doctors?specialization=${encodeURIComponent(name)}`}
+                className="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-col items-center text-center hover:shadow-md hover:border-brand-300 transition group min-w-0"
               >
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2.5 border ${spec.color} group-hover:scale-110 transition-transform`}>
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2.5 border ${meta.color} group-hover:scale-110 transition-transform shrink-0`}>
                   <Icon className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-bold text-slate-800 group-hover:text-brand-600 transition-colors">
-                  {spec.name}
+                <span className="text-xs font-bold text-slate-800 group-hover:text-brand-600 transition-colors leading-tight line-clamp-2">
+                  {name}
                 </span>
               </Link>
             );
