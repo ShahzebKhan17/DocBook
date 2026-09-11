@@ -81,86 +81,86 @@ export default function AdminOverviewPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-              <Users className="w-6 h-6" />
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 min-w-0">
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wide block leading-snug break-words">
                 Total Patients
               </span>
-              <span className="text-2xl font-black text-slate-900 mt-0.5 block">
+              <span className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 block">
                 {stats?.total_patients ?? 0}
               </span>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
-              <Stethoscope className="w-6 h-6" />
+          <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 min-w-0">
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
+              <Stethoscope className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wide block leading-snug break-words">
                 Total Doctors
               </span>
-              <span className="text-2xl font-black text-slate-900 mt-0.5 block">
+              <span className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 block">
                 {stats?.total_doctors ?? 0}
               </span>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-              <Calendar className="w-6 h-6" />
+          <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 min-w-0">
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+              <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wide block leading-snug break-words">
                 Today&apos;s Appointments
               </span>
-              <span className="text-2xl font-black text-slate-900 mt-0.5 block">
+              <span className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 block">
                 {stats?.today_appointments ?? 0}
               </span>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-              <CalendarCheck className="w-6 h-6" />
+          <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 min-w-0">
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+              <CalendarCheck className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wide block leading-snug break-words">
                 Upcoming Visits
               </span>
-              <span className="text-2xl font-black text-slate-900 mt-0.5 block">
+              <span className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 block">
                 {stats?.upcoming_appointments ?? 0}
               </span>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-6 h-6" />
+          <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 min-w-0">
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wide block leading-snug break-words">
                 Completed
               </span>
-              <span className="text-2xl font-black text-slate-900 mt-0.5 block">
+              <span className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 block">
                 {stats?.completed_appointments ?? 0}
               </span>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-              <XCircle className="w-6 h-6" />
+          <div className="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 min-w-0">
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+              <XCircle className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+            <div className="min-w-0 flex-1">
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wide block leading-snug break-words">
                 Cancelled
               </span>
-              <span className="text-2xl font-black text-slate-900 mt-0.5 block">
+              <span className="text-xl sm:text-2xl font-black text-slate-900 mt-0.5 block">
                 {stats?.cancelled_appointments ?? 0}
               </span>
             </div>
