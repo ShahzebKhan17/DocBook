@@ -111,15 +111,30 @@ def test_full_flow():
 
     assert res.status_code == 200, res.text
     reg_data = res.json()
-    dev_token = reg_data.get("dev_verification_token")
-    assert dev_token is not None
-    print(f"[OK] Registered patient with dev token: {dev_token[:10]}...")
+    assert "dev_verification_token" not in reg_data, "dev_verification_token should NOT be returned in API response"
 
-    # Verify email
-    res = client.post("/api/v1/auth/verify-email", json={"token": dev_token})
+    # Retrieve 6-digit verification code from DB (simulating user checking email inbox)
+    from backend.app.core.database import SessionLocal
+    from backend.app.models.user import User
+    db_session = SessionLocal()
+    registered_user = db_session.query(User).filter(User.email == reg_payload["email"].lower()).first()
+    code = registered_user.verification_token
+    db_session.close()
+
+    assert code is not None and len(code) == 6 and code.isdigit(), f"Expected 6-digit numeric code, got: {code}"
+    print(f"[OK] Registered patient without token leakage. 6-Digit Code in email: {code}")
+
+    # Verify email using the 6-digit code
+    res = client.post("/api/v1/auth/verify-email", json={"token": code, "email": reg_payload["email"]})
     assert res.status_code == 200
     assert "verified successfully" in res.json()["message"]
-    print("[OK] Email verified successfully")
+    print("[OK] Email verified successfully using 6-digit code")
+
+    # Test resend verification endpoint guard
+    resend_res = client.post("/api/v1/auth/resend-verification", json={"email": reg_payload["email"]})
+    assert resend_res.status_code == 200
+    assert "already verified" in resend_res.json()["message"]
+    print("[OK] Resend verification guard passed")
 
     # Login patient
     login_res = client.post(

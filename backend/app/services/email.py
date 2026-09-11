@@ -8,7 +8,7 @@ logger = logging.getLogger("docbook.email")
 
 async def send_verification_email(to_email: str, to_name: str, token: str) -> bool:
     verification_link = f"{settings.FRONTEND_URL}/verify-email?token={token}"
-    subject = "Verify Your Email — DocBook Appointment Booking"
+    subject = f"{token} is your DocBook verification code"
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -16,24 +16,36 @@ async def send_verification_email(to_email: str, to_name: str, token: str) -> bo
         <meta charset="utf-8">
         <style>
             body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #1e293b; }}
-            .card {{ max-width: 540px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }}
-            .logo {{ font-size: 24px; font-weight: 700; color: #0284c7; margin-bottom: 24px; display: inline-block; }}
-            .title {{ font-size: 20px; font-weight: 600; margin-bottom: 12px; color: #0f172a; }}
-            .btn {{ display: inline-block; background-color: #0284c7; color: #ffffff !important; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 24px 0; }}
-            .footer {{ font-size: 13px; color: #64748b; margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 16px; }}
+            .card {{ max-width: 540px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 36px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }}
+            .logo {{ font-size: 22px; font-weight: 700; color: #0284c7; margin-bottom: 20px; display: inline-block; }}
+            .title {{ font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #0f172a; }}
+            .code-box {{ background: #f0f9ff; border: 2px dashed #bae6fd; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; }}
+            .code {{ font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #0284c7; font-family: 'Courier New', Courier, monospace; display: block; }}
+            .btn {{ display: inline-block; background-color: #0284c7; color: #ffffff !important; padding: 12px 28px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 14px; margin: 8px 0 20px 0; }}
+            .footer {{ font-size: 12px; color: #94a3b8; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 16px; }}
         </style>
     </head>
     <body>
         <div class="card">
             <div class="logo">🏥 DocBook</div>
-            <div class="title">Welcome, {to_name}!</div>
-            <p>Thank you for creating an account with DocBook. Please verify your email address to complete your registration and start booking doctor appointments.</p>
+            <div class="title">Verify Your Email Address</div>
+            <p style="font-size: 14px; color: #475569; line-height: 1.6;">Hello {to_name},</p>
+            <p style="font-size: 14px; color: #475569; line-height: 1.6;">Thank you for registering with DocBook. Enter the following 6-digit verification code on the verification screen to activate your account:</p>
+            
+            <div class="code-box">
+                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #0369a1; display: block; margin-bottom: 6px;">Your 6-Digit Code</span>
+                <span class="code">{token}</span>
+            </div>
+
             <div style="text-align: center;">
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Or click the button below to verify automatically in one click:</p>
                 <a href="{verification_link}" class="btn" target="_blank">Verify Email Address</a>
             </div>
-            <p style="font-size: 13px; color: #64748b;">Or copy this link into your browser:<br><a href="{verification_link}" style="color: #0284c7; word-break: break-all;">{verification_link}</a></p>
+
+            <p style="font-size: 12px; color: #64748b; word-break: break-all;">Verification Link: <a href="{verification_link}" style="color: #0284c7;">{verification_link}</a></p>
+
             <div class="footer">
-                If you did not create an account on DocBook, please safely ignore this email.
+                This verification code will expire in 24 hours. If you did not create an account on DocBook, please safely ignore this message.
             </div>
         </div>
     </body>

@@ -37,4 +37,5 @@ def create_access_token(subject: Union[str, Any], role: str, expires_delta: Opti
 
 
 def generate_verification_token() -> str:
-    return secrets.token_urlsafe(32)
+    """Generates a cryptographically secure 6-digit numeric verification code."""
+    return str(secrets.randbelow(900000) + 100000)

@@ -9,7 +9,14 @@ from backend.app.core.security import (
     verify_password,
 )
 from backend.app.models.user import PatientProfile, User, UserRole
-from backend.app.schemas.auth import Token, UserLogin, UserRegister, UserResponse, VerifyEmailRequest
+from backend.app.schemas.auth import (
+    ResendVerificationRequest,
+    Token,
+    UserLogin,
+    UserRegister,
+    UserResponse,
+    VerifyEmailRequest,
+)
 from backend.app.services.email import send_verification_email
 
 router = APIRouter()
@@ -23,10 +30,10 @@ async def register(user_in: UserRegister, db: Session = Depends(get_db)):
     if user_in.email.lower().strip() == settings.admin_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="This email address is reserved for system administration. Please sign in via the login page."
+            detail="This email is reserved for administration. Please use another email or log in."
         )
 
-    existing = db.query(User).filter(User.email == user_in.email.lower().strip()).first()
+    existing = db.query(User).filter(User.email == user_in.email.lower()).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -55,20 +62,24 @@ async def register(user_in: UserRegister, db: Session = Depends(get_db)):
     await send_verification_email(user.email, user.name, verification_token)
 
     return {
-        "message": "Registration successful! Please check your email to verify your account.",
+        "message": "Registration successful! A 6-digit verification code has been sent to your email.",
         "user_id": user.id,
         "email": user.email,
-        "dev_verification_token": verification_token,  # For easy local development/testing
     }
 
 
 @router.post("/verify-email")
 def verify_email(payload: VerifyEmailRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.verification_token == payload.token).first()
+    clean_token = payload.token.strip()
+    query = db.query(User).filter(User.verification_token == clean_token)
+    if payload.email:
+        query = query.filter(User.email == payload.email.lower().strip())
+
+    user = query.first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired verification token."
+            detail="Invalid or expired verification code."
         )
 
     user.email_verified = True
@@ -76,6 +87,27 @@ def verify_email(payload: VerifyEmailRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Email address verified successfully. You can now log in."}
+
+
+@router.post("/resend-verification")
+async def resend_verification(payload: ResendVerificationRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == payload.email.lower().strip()).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No account found with this email address."
+        )
+
+    if user.email_verified:
+        return {"message": "This email address is already verified. Please sign in."}
+
+    # Generate fresh 6-digit verification code
+    new_code = generate_verification_token()
+    user.verification_token = new_code
+    db.commit()
+
+    await send_verification_email(user.email, user.name, new_code)
+    return {"message": "A fresh verification code has been sent to your email."}
 
 
 @router.post("/login", response_model=Token)

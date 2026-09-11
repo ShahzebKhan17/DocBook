@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { Stethoscope, User, Mail, Lock, AlertCircle, CheckCircle2, ArrowRight, ExternalLink } from 'lucide-react';
+import { Stethoscope, User, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,8 +16,6 @@ export default function RegisterPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [registeredSuccess, setRegisteredSuccess] = useState(false);
-  const [devToken, setDevToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,19 +28,16 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      const data = await api.register({
+      await api.register({
         name,
         email,
         password,
         confirm_password: confirmPassword,
       });
-      setRegisteredSuccess(true);
-      if (data.dev_verification_token) {
-        setDevToken(data.dev_verification_token);
-      }
+      // Redirect to verification page with email in query parameter
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } catch (err: any) {
       setError(err.message || 'Registration failed');
-    } finally {
       setLoading(false);
     }
   };
@@ -61,58 +56,13 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {registeredSuccess ? (
-          /* Email Verification Sent Screen */
-          <div className="text-center py-4 space-y-4">
-            <div className="w-16 h-16 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mx-auto">
-              <Mail className="w-8 h-8" />
+        {/* Registration Form */}
+        {error && (
+            <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{error}</span>
             </div>
-
-            <h3 className="text-xl font-bold text-slate-900">
-              Verify Your Email Address
-            </h3>
-
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              We have sent a verification link to <strong className="text-slate-900">{email}</strong>.
-              Please click the link in your email to activate your account.
-            </p>
-
-            {devToken && (
-              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-left text-xs space-y-2">
-                <span className="font-bold text-emerald-800 flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  Development Verification Shortcut
-                </span>
-                <p className="text-emerald-700 leading-relaxed">
-                  In local development, you can verify your account instantly:
-                </p>
-                <Link
-                  href={`/verify-email?token=${devToken}`}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition"
-                >
-                  Verify Now (1-Click) <ExternalLink className="w-3 h-3" />
-                </Link>
-              </div>
-            )}
-
-            <div className="pt-4 border-t border-slate-100">
-              <Link
-                href="/login"
-                className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm transition inline-block"
-              >
-                Go to Sign In
-              </Link>
-            </div>
-          </div>
-        ) : (
-          /* Registration Form */
-          <>
-            {error && (
-              <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{error}</span>
-              </div>
-            )}
+          )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -209,8 +159,6 @@ export default function RegisterPage() {
                 Sign In
               </Link>
             </p>
-          </>
-        )}
       </div>
     </div>
   );

@@ -33,6 +33,11 @@ class Token(BaseModel):
 
 class VerifyEmailRequest(BaseModel):
     token: str
+    email: Optional[EmailStr] = None
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
 
 
 class UserResponse(BaseModel):
