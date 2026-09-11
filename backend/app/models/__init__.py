@@ -2,6 +2,7 @@ from backend.app.models.user import User, PatientProfile, UserRole
 from backend.app.models.doctor import Doctor, DoctorLocation, DoctorAvailability
 from backend.app.models.appointment import Appointment, AppointmentStatus
 from backend.app.models.notification import Notification, NotificationType, NotificationStatus
+from backend.app.models.prescription import Prescription
 
 __all__ = [
     "User",
@@ -15,4 +16,5 @@ __all__ = [
     "Notification",
     "NotificationType",
     "NotificationStatus",
+    "Prescription",
 ]

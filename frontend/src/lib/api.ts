@@ -20,7 +20,7 @@ export function removeAuthToken() {
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getAuthToken();
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(!(options.body instanceof FormData) && { 'Content-Type': 'application/json' }),
     ...(options.headers as Record<string, string>),
   };
 
@@ -83,6 +83,12 @@ export const api = {
     request<any>('/appointments/book', { method: 'POST', body: JSON.stringify(data) }),
   cancelAppointment: (id: string) =>
     request<any>(`/appointments/${id}/cancel`, { method: 'PUT' }),
+
+  // Prescriptions & Medicine Orders
+  uploadPrescription: (formData: FormData) =>
+    request<any>('/prescriptions/upload', { method: 'POST', body: formData }),
+  getMyPrescriptions: () =>
+    request<any[]>('/prescriptions/my'),
 
   // Admin
   getAdminStats: () => request<any>('/admin/stats'),

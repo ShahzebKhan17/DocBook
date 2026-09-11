@@ -17,7 +17,10 @@ from backend.app.services.slots import (
     format_time_display,
     generate_available_slots,
 )
-from backend.app.services.telegram import send_telegram_admin_notification
+from backend.app.services.telegram import (
+    send_telegram_admin_notification,
+    send_telegram_cancellation_notification,
+)
 
 router = APIRouter()
 
@@ -212,7 +215,7 @@ async def book_appointment(
 
 
 @router.put("/{appointment_id}/cancel", response_model=AppointmentResponse)
-def cancel_appointment(
+async def cancel_appointment(
     appointment_id: str,
     current_patient: User = Depends(get_current_verified_patient),
     db: Session = Depends(get_db),
@@ -234,6 +237,23 @@ def cancel_appointment(
     appt.status = AppointmentStatus.CANCELLED
     db.commit()
     db.refresh(appt)
+
+    # Dispatch Telegram cancellation notification to Clinic
+    try:
+        time_str = format_time_display(appt.appointment_time)
+        date_str = appt.appointment_date.strftime("%d %B %Y")
+        await send_telegram_cancellation_notification(
+            db=db,
+            appointment_id=appt.id,
+            patient_name=current_patient.name,
+            doctor_name=appt.doctor.name,
+            specialization=appt.doctor.specialization,
+            appointment_date_str=date_str,
+            appointment_time_str=time_str,
+            clinic_name=appt.location.clinic_name,
+        )
+    except Exception as exc:
+        pass
 
     return AppointmentResponse(
         id=appt.id,

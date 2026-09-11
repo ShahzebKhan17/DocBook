@@ -17,7 +17,9 @@ import {
   ExternalLink,
   User,
   Plus,
+  Pill,
 } from 'lucide-react';
+import UploadPrescriptionModal from '@/components/prescriptions/UploadPrescriptionModal';
 
 export default function PatientDashboardPage() {
   const { user, loading: authLoading } = useAuth();
@@ -27,6 +29,10 @@ export default function PatientDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+
+  const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [selectedApptForPrescription, setSelectedApptForPrescription] = useState<Appointment | null>(null);
+  const [patientProfile, setPatientProfile] = useState<any>(null);
 
   const fetchAppointments = () => {
     setLoading(true);
@@ -44,6 +50,7 @@ export default function PatientDashboardPage() {
     }
     if (user) {
       fetchAppointments();
+      api.getPatientProfile().then((p) => setPatientProfile(p)).catch(() => {});
     }
   }, [user, authLoading]);
 
@@ -142,6 +149,31 @@ export default function PatientDashboardPage() {
             <Plus className="w-4 h-4" /> Book Doctor
           </Link>
         </div>
+      </div>
+
+      {/* Have Prescription Quick Action Banner */}
+      <div className="bg-gradient-to-r from-purple-50 via-brand-50 to-sky-50 border border-purple-100/80 rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-500/20">
+            <Pill className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-slate-900">Need Medicines Delivered?</h2>
+            <p className="text-xs text-slate-600 mt-0.5">
+              Upload your doctor's prescription and our clinic pharmacy will process and dispatch your medicines.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedApptForPrescription(null);
+            setIsPrescriptionModalOpen(true);
+          }}
+          className="w-full sm:w-auto px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-md shadow-purple-500/20 transition whitespace-nowrap text-center"
+        >
+          Upload Prescription
+        </button>
       </div>
 
       {/* Navigation Tabs */}
@@ -250,21 +282,52 @@ export default function PatientDashboardPage() {
                     </span>
                   </div>
 
-                  {canCancel && (
+                  <div className="flex items-center gap-2 flex-wrap sm:flex-col sm:items-end">
                     <button
-                      onClick={() => handleCancelAppointment(appt.id)}
-                      disabled={cancellingId === appt.id}
-                      className="px-3 py-1.5 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 rounded-lg transition"
+                      type="button"
+                      onClick={() => {
+                        setSelectedApptForPrescription(appt);
+                        setIsPrescriptionModalOpen(true);
+                      }}
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition whitespace-nowrap"
+                      title="Upload doctor prescription for medicine delivery"
                     >
-                      {cancellingId === appt.id ? 'Cancelling...' : 'Cancel Visit'}
+                      <Pill className="w-3.5 h-3.5 text-purple-600" />
+                      <span>Order Medicines</span>
                     </button>
-                  )}
+
+                    {canCancel && (
+                      <button
+                        onClick={() => handleCancelAppointment(appt.id)}
+                        disabled={cancellingId === appt.id}
+                        className="px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 rounded-lg transition whitespace-nowrap"
+                      >
+                        {cancellingId === appt.id ? 'Cancelling...' : 'Cancel Visit'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
       )}
+
+      {/* Prescription Upload Modal */}
+      <UploadPrescriptionModal
+        isOpen={isPrescriptionModalOpen}
+        onClose={() => {
+          setIsPrescriptionModalOpen(false);
+          setSelectedApptForPrescription(null);
+        }}
+        appointment={selectedApptForPrescription}
+        defaultMobile={patientProfile?.mobile || ''}
+        defaultAddress={
+          patientProfile?.address
+            ? `${patientProfile.address}${patientProfile.city ? `, ${patientProfile.city}` : ''}${patientProfile.pincode ? ` - ${patientProfile.pincode}` : ''}`
+            : ''
+        }
+      />
     </div>
   );
 }

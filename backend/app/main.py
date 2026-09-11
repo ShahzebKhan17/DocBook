@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.api import admin, appointments, auth, doctors, patients
+from backend.app.api import admin, appointments, auth, doctors, patients, prescriptions
 from backend.app.core.config import settings
 from backend.app.core.database import Base, SessionLocal, engine
 from backend.app.seed import ensure_single_admin
@@ -51,6 +51,7 @@ app.include_router(patients.router, prefix=f"{settings.API_V1_STR}/patients", ta
 app.include_router(doctors.router, prefix=f"{settings.API_V1_STR}/doctors", tags=["Doctors"])
 app.include_router(appointments.router, prefix=f"{settings.API_V1_STR}/appointments", tags=["Appointments"])
 app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["Admin Management"])
+app.include_router(prescriptions.router, prefix=f"{settings.API_V1_STR}/prescriptions", tags=["Prescriptions"])
 
 
 @app.get("/")

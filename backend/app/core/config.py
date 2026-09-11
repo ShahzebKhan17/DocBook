@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -48,7 +49,11 @@ class Settings(BaseSettings):
     def admin_password(self) -> str:
         return self.ADMIN_PASSWORD or self.INITIAL_ADMIN_PASSWORD
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(".env", "backend/.env", str(Path(__file__).resolve().parent.parent.parent / ".env")),
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
 
 settings = Settings()
