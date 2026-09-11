@@ -15,9 +15,18 @@ from backend.app.services.email import send_verification_email
 router = APIRouter()
 
 
+from backend.app.core.config import settings
+
+
 @router.post("/register")
 async def register(user_in: UserRegister, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.email == user_in.email.lower()).first()
+    if user_in.email.lower().strip() == settings.admin_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This email address is reserved for system administration. Please sign in via the login page."
+        )
+
+    existing = db.query(User).filter(User.email == user_in.email.lower().strip()).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -9,29 +9,71 @@ from backend.app.models.doctor import Doctor, DoctorAvailability, DoctorLocation
 from backend.app.models.user import PatientProfile, User, UserRole
 
 
-def seed_database():
-    Base.metadata.create_all(bind=engine)
-    db: Session = SessionLocal()
+def ensure_single_admin(db: Session) -> User:
+    """
+    Ensures exactly one designated Administrator account exists,
+    synchronized with settings.admin_email and settings.admin_password.
+    Demotes any other accounts to PATIENT to enforce strict Single-Admin architecture.
+    """
+    target_email = settings.admin_email
+    target_name = settings.admin_name
+    target_password = settings.admin_password
 
-    try:
-        # 1. Seed Admin User
-        admin_user = db.query(User).filter(User.email == settings.INITIAL_ADMIN_EMAIL.lower()).first()
-        if not admin_user:
-            print(f"Creating Admin user: {settings.INITIAL_ADMIN_EMAIL}")
+    # 1. Check if user with target email exists
+    admin_user = db.query(User).filter(User.email == target_email).first()
+
+    if not admin_user:
+        # Check if there is an existing admin with old email (e.g. default admin@docbook.com)
+        old_admin = db.query(User).filter(User.role == UserRole.ADMIN).first()
+        if old_admin:
+            print(f"[Admin Sync] Updating existing admin account to {target_email}")
+            old_admin.email = target_email
+            old_admin.name = target_name
+            old_admin.password_hash = get_password_hash(target_password)
+            old_admin.email_verified = True
+            old_admin.verification_token = None
+            admin_user = old_admin
+        else:
+            print(f"[Admin Sync] Creating Single Admin account: {target_email}")
             admin_user = User(
-                name=settings.INITIAL_ADMIN_NAME,
-                email=settings.INITIAL_ADMIN_EMAIL.lower(),
-                password_hash=get_password_hash(settings.INITIAL_ADMIN_PASSWORD),
+                name=target_name,
+                email=target_email,
+                password_hash=get_password_hash(target_password),
                 role=UserRole.ADMIN,
                 email_verified=True,
                 verification_token=None,
             )
             db.add(admin_user)
-            db.commit()
-            db.refresh(admin_user)
-            print("[OK] Admin user created successfully.")
-        else:
-            print("[OK] Admin user already exists.")
+    else:
+        # User exists - ensure admin privileges, name, and password hash
+        admin_user.role = UserRole.ADMIN
+        admin_user.name = target_name
+        admin_user.password_hash = get_password_hash(target_password)
+        admin_user.email_verified = True
+        admin_user.verification_token = None
+
+    db.commit()
+    db.refresh(admin_user)
+
+    # 2. Enforce Single-Admin rule: Demote any other admin users to PATIENT
+    other_admins = db.query(User).filter(User.role == UserRole.ADMIN, User.id != admin_user.id).all()
+    for extra in other_admins:
+        print(f"[Admin Sync] Demoting extra admin '{extra.email}' to PATIENT")
+        extra.role = UserRole.PATIENT
+    if other_admins:
+        db.commit()
+
+    print(f"[OK] Single Admin verified: {admin_user.email} ({admin_user.name})")
+    return admin_user
+
+
+def seed_database():
+    Base.metadata.create_all(bind=engine)
+    db: Session = SessionLocal()
+
+    try:
+        # 1. Seed / Synchronize Single Admin User
+        admin_user = ensure_single_admin(db)
 
         # 2. Seed Demo Patient (Rahul Sharma)
         patient_email = "rahul.sharma@example.com"

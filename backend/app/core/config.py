@@ -27,10 +27,26 @@ class Settings(BaseSettings):
     TELEGRAM_BOT_TOKEN: Optional[str] = None
     TELEGRAM_ADMIN_CHAT_ID: Optional[str] = None
 
-    # Initial Admin Seed
-    INITIAL_ADMIN_NAME: str = "Dr. Admin"
+    # Single Admin Credentials (Set in Render / .env)
+    ADMIN_NAME: Optional[str] = None
+    ADMIN_EMAIL: Optional[str] = None
+    ADMIN_PASSWORD: Optional[str] = None
+
+    INITIAL_ADMIN_NAME: str = "System Admin"
     INITIAL_ADMIN_EMAIL: str = "admin@docbook.com"
     INITIAL_ADMIN_PASSWORD: str = "Admin@123"
+
+    @property
+    def admin_name(self) -> str:
+        return self.ADMIN_NAME or self.INITIAL_ADMIN_NAME
+
+    @property
+    def admin_email(self) -> str:
+        return (self.ADMIN_EMAIL or self.INITIAL_ADMIN_EMAIL).lower().strip()
+
+    @property
+    def admin_password(self) -> str:
+        return self.ADMIN_PASSWORD or self.INITIAL_ADMIN_PASSWORD
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

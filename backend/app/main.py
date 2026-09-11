@@ -3,13 +3,22 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.api import admin, appointments, auth, doctors, patients
 from backend.app.core.config import settings
-from backend.app.core.database import Base, engine
+from backend.app.core.database import Base, SessionLocal, engine
+from backend.app.seed import ensure_single_admin
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Ensure database tables exist
     Base.metadata.create_all(bind=engine)
+    # Ensure single admin account is initialized and synchronized
+    db = SessionLocal()
+    try:
+        ensure_single_admin(db)
+    except Exception as exc:
+        print(f"[Admin Lifespan] Warning syncing admin: {exc}")
+    finally:
+        db.close()
     yield
 
 

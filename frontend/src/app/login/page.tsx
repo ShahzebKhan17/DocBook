@@ -36,16 +36,6 @@ function LoginContent() {
     }
   };
 
-  const fillDemoPatient = () => {
-    setEmail('rahul.sharma@example.com');
-    setPassword('Patient@123');
-  };
-
-  const fillDemoAdmin = () => {
-    setEmail('admin@docbook.com');
-    setPassword('Admin@123');
-  };
-
   return (
     <div className="max-w-md mx-auto py-8 sm:py-12">
       <div className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm">
@@ -116,32 +106,6 @@ function LoginContent() {
             )}
           </button>
         </form>
-
-        {/* Quick Demo Credentials for Fast Testing */}
-        <div className="mt-6 pt-6 border-t border-slate-100">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block text-center mb-2.5">
-            Quick Demo Autofill
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={fillDemoPatient}
-              className="p-2 text-left bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 text-xs transition"
-            >
-              <span className="font-bold text-slate-800 block">Patient Account</span>
-              <span className="text-[11px] text-slate-500">Rahul Sharma</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={fillDemoAdmin}
-              className="p-2 text-left bg-amber-50 hover:bg-amber-100/80 rounded-xl border border-amber-200 text-xs transition"
-            >
-              <span className="font-bold text-amber-900 block">Admin Account</span>
-              <span className="text-[11px] text-amber-700">Full Dashboard</span>
-            </button>
-          </div>
-        </div>
 
         {/* Footer */}
         <p className="text-center text-xs text-slate-500 mt-6">

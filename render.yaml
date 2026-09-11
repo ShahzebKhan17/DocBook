@@ -16,11 +16,12 @@ services:
         value: http://localhost:3000
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 10080
-      - key: INITIAL_ADMIN_EMAIL
+      # Single Dedicated Admin Account
+      - key: ADMIN_EMAIL
         value: admin@docbook.com
-      - key: INITIAL_ADMIN_PASSWORD
+      - key: ADMIN_PASSWORD
         value: Admin@123
-      - key: INITIAL_ADMIN_NAME
+      - key: ADMIN_NAME
         value: System Admin
       # Optional: Add your Brevo & Telegram keys in Render Dashboard if used:
       # - key: BREVO_API_KEY

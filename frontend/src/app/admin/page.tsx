@@ -68,7 +68,7 @@ export default function AdminOverviewPage() {
               <h1 className="text-2xl font-bold text-slate-900">Admin Control Center</h1>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Overview of registered doctors, clinic locations, and patient bookings
+              Logged in as <span className="font-semibold text-slate-800">{user?.name}</span> ({user?.email}) • Full Administrative Authority
             </p>
           </div>
 
