@@ -1,32 +1,39 @@
 # 🏥 DocBook — Modern Doctor Appointment Booking PWA
 
-A mobile-first, production-ready **Doctor Appointment Booking Progressive Web Application (PWA)** built with **FastAPI**, **PostgreSQL / SQLite**, and **Next.js (App Router, TypeScript, Tailwind CSS)**.
+A mobile-first, production-ready **Doctor Appointment Booking Progressive Web Application (PWA)** built with **FastAPI**, **PostgreSQL / SQLite**, and **Next.js 14 (App Router, TypeScript, Tailwind CSS)**.
 
 DocBook provides a seamless, transparent experience for patients to discover doctors, explore clinic locations, inspect real-time available time slots, and book appointments, with instant **Telegram Bot notifications** to the Admin and **Brevo email verification**.
 
 ---
 
-## 🌟 Core Features
+## 🌟 Key Features & Architecture
 
 ### 👤 Patient Experience
 - **Mobile-First PWA:** Installable as a native app on Android, iOS, and Desktop with offline caching, custom app icons, and responsive bottom navigation.
-- **Registration & Email Verification:** Secure registration with Brevo verification link dispatch (with console fallback for local development).
-- **Patient Profile Management:** Complete health profile (Age/Date of Birth, Gender, Mobile, Residential Address, Blood Group, Allergies, Emergency Contact).
+- **Smart Multi-Location Availability (Green / Red Indicators):**
+  - For doctors consulting at multiple clinics/hospitals, each clinic card dynamically indicates its status for the selected appointment date:
+    - 🟢 **Green (`OPD Available`):** Doctor is actively consulting at this clinic on the chosen date.
+    - 🔴 **Red (`No OPD Today`):** Doctor is not consulting here on this date; displays alternate days when this clinic is open.
+  - **Smart Auto-Focus:** Automatically focuses the patient on an active clinic when selecting a date.
+- **Hourly 40-Bookings Capacity System:**
+  - Schedules automatically partition into standard 1-hour slots (e.g., `10:00 AM - 11:00 AM`).
+  - Strict 40 bookings/hour maximum per slot (e.g., 3-hour OPD shift allows $3 \times 40 = 120$ appointments).
+  - **Privacy-First Frontend:** Never leaks or exposes remaining booking counts. Once 40 bookings are reached, the slot is disabled with the exact message: *"No More Bookings Are Allowed for this Particular Time Slot"*.
+- **Timezone-Safe Date Selector:** Local date parsing ensures that date pills and server queries match 1-to-1 without UTC day-shift offsets.
 - **Doctor Discovery & Filters:** Filter by doctor name, specialization (Cardiology, Pediatrics, Dermatology, Orthopedics, Gynecology), city (e.g. Ayodhya, Lucknow), and consultation fee (e.g. Under ₹500).
-- **Comprehensive Doctor Profiles:** Qualifications, years of experience, dynamically calculated consultations count, multiple clinic locations with Google Maps links, consultation & follow-up fees, and availability schedules.
-- **Real-Time Slot Engine:** Instant day-of-week availability slot generation (e.g. 10:00 AM – 1:00 PM, 5:00 PM – 8:00 PM with 30-min duration) with backend double-booking prevention.
-- **Appointment Review & Confirmation:** Transparent summary before booking showing Doctor, Clinic, Date, Time, Consultation Fee, and Patient details.
-- **Patient Dashboard:** View upcoming and past visits with live status badges (`BOOKED`, `CONFIRMED`, `COMPLETED`, `CANCELLED`) and cancellation capabilities.
+- **Comprehensive Doctor Profiles:** Qualifications, experience, verified badges, dynamically calculated completed consultations count, clinic addresses with Google Maps navigation links, and consultation/follow-up fees.
+- **Authentication Guard:** Logged-in users visiting `/login` or `/register` are automatically redirected to `/dashboard` or `/admin` without re-entering credentials.
+- **Patient Dashboard:** Manage upcoming and completed appointments with live status badges (`BOOKED`, `CONFIRMED`, `COMPLETED`, `CANCELLED`) and cancellation capabilities.
 
 ### 🛡️ Admin Control Center
-- **Overview Dashboard:** Live counters for Total Patients, Total Doctors, Today's Appointments, Upcoming Visits, Completed, and Cancelled appointments.
+- **Live Statistics Overview:** Total Patients, Total Doctors, Today's Appointments, Upcoming Visits, Completed, and Cancelled appointments.
 - **Doctor Management:** Onboard doctors (basic info, profile photo, gender, bio, specialization, qualification, experience).
-- **Dynamic Fee Management:** Set and adjust consultation & follow-up fees anytime (with guaranteed fee snapshot immutability for past bookings).
-- **Multi-Location Management:** Manage clinic/hospital addresses, localities, cities, states, pin codes, room/OPD numbers, and Google Maps links.
-- **Availability Scheduler:** Configure working days (Monday–Sunday), shift timings, and slot duration per clinic location.
-- **Appointment Lifecycle Hub:** Filter appointments by doctor, date, or status; inspect patient contact info; update status (`CONFIRMED`, `COMPLETED`, `CANCELLED`).
-- **Instant Telegram Bot Notifications:** Dispatches formatted Telegram message to Admin whenever a new appointment is booked.
-- **Patients Directory:** View all registered patients with verified email badges and contact details.
+- **Dynamic Fee Management:** Set and adjust consultation & follow-up fees anytime (historical bookings maintain guaranteed fee immutability).
+- **Multi-Location Management:** Manage multiple clinics/hospitals per doctor (clinic name, address, room/OPD number, Google Maps link). Safe deactivation preserves past booking history.
+- **Automated Hourly Schedules:** Set working days and start/end times. Slot duration is automatically handled as 1-hour slots with 40-patient capacity.
+- **Appointment Lifecycle Management:** Filter appointments by doctor, date, or status; update status (`CONFIRMED`, `COMPLETED`, `CANCELLED`). Marking as `COMPLETED` automatically increments the doctor's consultation counter.
+- **Instant Telegram Bot Alerts:** Dispatches formatted alerts to the Admin Telegram group/chat whenever an appointment is booked or cancelled.
+- **Patients Directory:** View all registered patients with verification status and contact details.
 
 ---
 
@@ -36,15 +43,15 @@ DocBook provides a seamless, transparent experience for patients to discover doc
 |---|---|
 | **Frontend** | Next.js 14 (App Router), TypeScript, Tailwind CSS, Lucide Icons |
 | **PWA** | Web App Manifest (`manifest.json`), Service Worker (`sw.js`), Mobile Meta |
-| **Backend** | FastAPI, Python 3.13, Uvicorn, Pydantic v2 |
-| **Database** | PostgreSQL (Render/Prod) / SQLite (Local dev), SQLAlchemy 2.0, Alembic |
+| **Backend** | FastAPI, Python 3.12 / 3.13, Uvicorn, Pydantic v2 |
+| **Database** | PostgreSQL (Render/Prod) / SQLite (Local dev), SQLAlchemy 2.0 |
 | **Authentication** | JWT (python-jose), bcrypt password hashing, Role-Based Access Control |
 | **Email Verification** | Brevo REST API v3 (with dev console fallback) |
 | **Admin Notifications** | Telegram Bot API (`sendMessage` with HTML formatting) |
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## 🚀 Local Development Setup
 
 ### 1. Backend Setup
 
@@ -61,7 +68,7 @@ DocBook provides a seamless, transparent experience for patients to discover doc
    source backend/venv/bin/activate
    ```
 
-3. Run the database seed script to populate initial Admin, demo patient, and realistic doctors/schedules:
+3. (Optional) Run database seed script to populate initial Admin and realistic doctors:
    ```bash
    python -m backend.app.seed
    ```
@@ -88,46 +95,17 @@ DocBook provides a seamless, transparent experience for patients to discover doc
 
 ---
 
-## 🧪 Running Automated Tests
-
-A comprehensive end-to-end test suite is included in `backend/tests/test_backend.py`.
-
-Run the test suite:
-```bash
-backend\venv\Scripts\python.exe backend/tests/test_backend.py
-```
-
-### Verified Test Cases:
-1. **Health Check & Root Endpoints**
-2. **Doctor Search & Multi-Criteria Filters** (specialization, city, consultation fee)
-3. **Patient Registration & Email Verification Token Flow**
-4. **Role-Based Authorization** (normal patients receiving HTTP 403 on admin routes)
-5. **Slot Generation Engine** (accurate date, day-of-week, duration slicing)
-6. **Appointment Booking & Fee Snapshot**
-7. **Double-Booking Prevention** (atomic DB validation returning HTTP 409 Conflict)
-8. **Consultation Fee Immutability** (doctor fee update preserves historical appointment fee)
-9. **Admin Lifecycle** (`BOOKED` -> `CONFIRMED` -> `COMPLETED`)
-
----
-
-## 🔑 Default Credentials
-
-| Role | Email | Password | Details |
-|---|---|---|---|
-| **Admin** | `admin@docbook.com` *(or your custom ADMIN_EMAIL)* | `Admin@123` *(or your custom ADMIN_PASSWORD)* | Full single-admin control over doctors, clinics, schedules, and bookings |
-
----
-
 ## ⚙️ Environment Variables
 
-Configure `backend/.env`:
+### Backend (`backend/.env` or Render Dashboard)
 ```env
 PROJECT_NAME="DocBook API"
 VERSION="1.0.0"
 
 # Database Configuration
+# Local SQLite default:
 DATABASE_URL="sqlite:///./docbook.db"
-# For PostgreSQL on Render / Production:
+# Or PostgreSQL for Render / Production:
 # DATABASE_URL="postgresql://user:password@host:5432/dbname"
 
 # Security
@@ -137,48 +115,54 @@ ACCESS_TOKEN_EXPIRE_MINUTES=10080
 # Frontend URL
 FRONTEND_URL="http://localhost:3000"
 
-# Brevo Email API (Optional for dev, verification links print to console if empty)
+# Brevo Email API (Optional for dev; OTP codes log to console if left empty)
 BREVO_API_KEY=""
 BREVO_SENDER_EMAIL="noreply@docbook.app"
 BREVO_SENDER_NAME="DocBook Healthcare"
 
-# Telegram Admin Notification (Optional for dev, notifications log to console/DB if empty)
-TELEGRAM_BOT_TOKEN=""
-TELEGRAM_ADMIN_CHAT_ID=""
+# Telegram Admin Notification (Set your Bot token & Admin chat ID)
+TELEGRAM_BOT_TOKEN="your_bot_token"
+TELEGRAM_ADMIN_CHAT_ID="your_chat_id"
 ```
+
+### Frontend (`frontend/.env.local` or Vercel Dashboard)
+```env
+NEXT_PUBLIC_API_URL=https://your-backend.onrender.com/api/v1
+```
+*(Defaults automatically to `http://localhost:8000/api/v1` in local development).*
 
 ---
 
 ## 📱 Telegram Notification Format
 
-When a patient books an appointment, the Admin receives:
+When a patient books an appointment, the Admin Telegram group receives:
 
 ```
 🔔 NEW APPOINTMENT
 
 Patient:
-John Doe
+Mohammad Khan
 
 Age:
-28
+26
 
 Mobile:
 98XXXXXXXX
 
 Doctor:
-Dr. Specialist
+Dr. Atul Verma
 
 Specialization:
-Cardiologist
+Orthopedics
 
 Date:
-15 September 2026
+12 September 2026
 
 Time:
-11:30 AM
+10:00 AM - 11:00 AM
 
 Location:
-Sharma Clinic
+Deva Hospital
 
 Consultation Fee:
 ₹500
@@ -192,13 +176,15 @@ APT-1024
 ## 🚢 Production Deployment
 
 ### Frontend (Vercel)
-- Root Directory: `frontend`
-- Build Command: `npm run build`
-- Output Directory: `.next`
-- Environment Variable: `NEXT_PUBLIC_API_URL=https://your-backend.onrender.com/api/v1`
+- **Framework:** Next.js
+- **Root Directory:** `frontend`
+- **Build Command:** `npm run build`
+- **Output Directory:** `.next`
+- **Environment Variables:**
+  - `NEXT_PUBLIC_API_URL`: `https://your-backend.onrender.com/api/v1`
 
 ### Backend (Render)
-- Environment: Python 3
-- Build Command: `pip install -r backend/requirements.txt`
-- Start Command: `uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT`
-- Database: Attach Render Managed PostgreSQL and set `DATABASE_URL`
+- **Environment:** Python 3
+- **Build Command:** `pip install -r backend/requirements.txt`
+- **Start Command:** `uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT`
+- **Environment Variables:** Set `DATABASE_URL`, `SECRET_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_CHAT_ID`, and `BREVO_API_KEY`.
