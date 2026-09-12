@@ -29,10 +29,29 @@ export default function AdminAppointmentsPage() {
   const [loading, setLoading] = useState(true);
 
   // Filters
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'all'>('upcoming');
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const todayStr = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  })();
+
+  const filteredAppointments = appointments.filter((appt) => {
+    // If a specific date is manually chosen in the date filter, let that filter take priority
+    if (selectedDate) return true;
+
+    if (activeTab === 'upcoming') {
+      return appt.appointment_date >= todayStr;
+    }
+    if (activeTab === 'past') {
+      return appt.appointment_date < todayStr;
+    }
+    return true;
+  });
 
   const fetchAppointments = () => {
     setLoading(true);
@@ -137,68 +156,118 @@ export default function AdminAppointmentsPage() {
         </div>
 
         {/* Filters Strip */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Doctor Filter */}
-          <div>
-            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-              Filter by Doctor
-            </label>
-            <select
-              value={selectedDoctorId}
-              onChange={(e) => setSelectedDoctorId(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700"
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+          {/* Quick Tabs: Upcoming & Today vs Past Appointments vs All */}
+          <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-xl max-w-md">
+            <button
+              onClick={() => setActiveTab('upcoming')}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition ${
+                activeTab === 'upcoming'
+                  ? 'bg-white text-brand-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
             >
-              <option value="">All Doctors</option>
-              {doctors.map((doc) => (
-                <option key={doc.id} value={doc.id}>
-                  {doc.name} ({doc.specialization})
-                </option>
-              ))}
-            </select>
+              Upcoming & Today
+            </button>
+            <button
+              onClick={() => setActiveTab('past')}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition ${
+                activeTab === 'past'
+                  ? 'bg-white text-brand-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Past / History
+            </button>
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition ${
+                activeTab === 'all'
+                  ? 'bg-white text-brand-700 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              All Records
+            </button>
           </div>
 
-          {/* Status Filter */}
-          <div>
-            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-              Filter by Status
-            </label>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700"
-            >
-              <option value="">All Statuses</option>
-              <option value="BOOKED">Booked</option>
-              <option value="CONFIRMED">Confirmed</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Doctor Filter */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                Filter by Doctor
+              </label>
+              <select
+                value={selectedDoctorId}
+                onChange={(e) => setSelectedDoctorId(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700"
+              >
+                <option value="">All Doctors</option>
+                {doctors.map((doc) => (
+                  <option key={doc.id} value={doc.id}>
+                    {doc.name} ({doc.specialization})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {/* Date Filter */}
-          <div>
-            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-              Filter by Date
-            </label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700"
-            />
+            {/* Status Filter */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                Filter by Status
+              </label>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700"
+              >
+                <option value="">All Statuses</option>
+                <option value="BOOKED">Booked</option>
+                <option value="CONFIRMED">Confirmed</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+            </div>
+
+            {/* Date Filter */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                Specific Date Picker
+              </label>
+              <div className="relative">
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700"
+                />
+                {selectedDate && (
+                  <button
+                    onClick={() => setSelectedDate('')}
+                    className="absolute right-2 top-2 text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-600 px-1.5 py-0.5 rounded"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Appointments Table / Cards */}
-        {appointments.length === 0 ? (
+        {filteredAppointments.length === 0 ? (
           <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center">
             <CalendarDays className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-base font-bold text-slate-800">No Appointments Match Criteria</h3>
-            <p className="text-xs text-slate-500 mt-1">Try resetting the doctor or status filters.</p>
+            <p className="text-xs text-slate-500 mt-1">
+              {activeTab === 'past'
+                ? 'No past appointments found in history.'
+                : 'Try checking the "Past / History" tab or resetting the filters.'}
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {appointments.map((appt) => (
+            {filteredAppointments.map((appt) => (
               <div
                 key={appt.id}
                 className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow transition flex flex-col lg:flex-row justify-between gap-4"

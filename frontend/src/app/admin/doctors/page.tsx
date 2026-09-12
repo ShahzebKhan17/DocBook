@@ -64,6 +64,10 @@ function AdminDoctorsContent() {
   // Availability Modal
   const [isAvailModalOpen, setIsAvailModalOpen] = useState(false);
   const [activeLocationId, setActiveLocationId] = useState<number | null>(null);
+  const [availDate, setAvailDate] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
   const [availDay, setAvailDay] = useState<number>(0);
   const [availStartTime, setAvailStartTime] = useState('10:00');
   const [availEndTime, setAvailEndTime] = useState('13:00');
@@ -203,10 +207,25 @@ function AdminDoctorsContent() {
   // Availability Handlers
   const openAvailabilityModal = (locationId: number) => {
     setActiveLocationId(locationId);
-    setAvailDay(0);
+    const today = new Date();
+    const formatted = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    setAvailDate(formatted);
+    // (dateObj.getDay() + 6) % 7 -> Monday=0 ... Sunday=6
+    const dayOfWeek = (today.getDay() + 6) % 7;
+    setAvailDay(dayOfWeek);
     setAvailStartTime('10:00');
     setAvailEndTime('13:00');
     setIsAvailModalOpen(true);
+  };
+
+  const handleDateChange = (dateStr: string) => {
+    setAvailDate(dateStr);
+    if (dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      const dayOfWeek = (dateObj.getDay() + 6) % 7;
+      setAvailDay(dayOfWeek);
+    }
   };
 
   const handleSaveAvailability = async (e: React.FormEvent) => {
@@ -738,18 +757,20 @@ function AdminDoctorsContent() {
 
               <form onSubmit={handleSaveAvailability} className="space-y-3 text-xs">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1 uppercase tracking-wider">Day of Week</label>
-                  <select
-                    value={availDay}
-                    onChange={(e) => setAvailDay(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold"
-                  >
-                    {DAYS_NAMES.map((name, idx) => (
-                      <option key={name} value={idx}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="block font-bold text-slate-700 mb-1 uppercase tracking-wider">
+                    Select Appointment Date
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={availDate}
+                    onChange={(e) => handleDateChange(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800"
+                  />
+                  <div className="mt-1.5 flex items-center justify-between text-[11px] bg-slate-100/80 px-2.5 py-1 rounded-lg">
+                    <span className="text-slate-500">Day:</span>
+                    <span className="font-bold text-brand-700">{DAYS_NAMES[availDay]}</span>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">

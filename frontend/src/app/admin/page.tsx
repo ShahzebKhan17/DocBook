@@ -39,7 +39,15 @@ export default function AdminOverviewPage() {
       Promise.all([api.getAdminStats(), api.getAdminAppointments()])
         .then(([statsData, apptsData]) => {
           setStats(statsData);
-          setRecentAppointments(apptsData.slice(0, 5));
+          const todayStr = (() => {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          })();
+          // Prioritize upcoming & today's appointments for the active dashboard
+          const upcoming = apptsData.filter((a) => a.appointment_date >= todayStr);
+          const past = apptsData.filter((a) => a.appointment_date < todayStr);
+          const prioritized = [...upcoming, ...past];
+          setRecentAppointments(prioritized.slice(0, 5));
         })
         .catch((err) => console.error(err))
         .finally(() => setLoading(false));
