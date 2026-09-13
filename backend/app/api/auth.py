@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.app.api.deps import get_current_user
@@ -10,14 +11,16 @@ from backend.app.core.security import (
 )
 from backend.app.models.user import PatientProfile, User, UserRole
 from backend.app.schemas.auth import (
+    ForgotPasswordRequest,
     ResendVerificationRequest,
+    ResetPasswordRequest,
     Token,
     UserLogin,
     UserRegister,
     UserResponse,
     VerifyEmailRequest,
 )
-from backend.app.services.email import send_verification_email
+from backend.app.services.email import send_password_reset_email, send_verification_email
 
 router = APIRouter()
 
@@ -135,3 +138,69 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/forgot-password")
+async def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    clean_email = payload.email.lower().strip()
+    user = db.query(User).filter(User.email == clean_email).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No account found with this email address."
+        )
+
+    # Generate cryptographically secure 6-digit OTP valid for 15 minutes
+    otp = generate_verification_token()
+    user.reset_token = otp
+    user.reset_token_expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+    db.commit()
+
+    # Send reset verification email
+    await send_password_reset_email(user.email, user.name, otp)
+
+    return {
+        "message": "A 6-digit verification code has been sent to your email.",
+        "email": user.email,
+    }
+
+
+@router.post("/reset-password")
+def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    clean_email = payload.email.lower().strip()
+    clean_otp = payload.otp.strip()
+
+    user = db.query(User).filter(User.email == clean_email).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No account found with this email address."
+        )
+
+    if not user.reset_token or user.reset_token != clean_otp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired verification code. Please check your email or request a new code."
+        )
+
+    if user.reset_token_expires_at:
+        expires_at = user.reset_token_expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) > expires_at:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Verification code has expired. Please request a new code."
+            )
+
+    # Update password
+    user.password_hash = get_password_hash(payload.new_password)
+    user.reset_token = None
+    user.reset_token_expires_at = None
+    user.email_verified = True
+    db.commit()
+
+    return {
+        "message": "Your password has been successfully reset. You can now sign in with your new password."
+    }
+
